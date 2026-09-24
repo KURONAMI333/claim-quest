@@ -3,7 +3,8 @@
 > Adds a **Claim Chunks** task type to FTB Quests. It progresses as your team's claimed-chunk count grows, so quest makers can reward territory expansion without any command-block plumbing. Server-side bridge; no content of its own.
 
 [![License: All Rights Reserved](https://img.shields.io/badge/License-All_Rights_Reserved-red.svg)](LICENSE)
-This is a local v0.1 prototype. No download page has been published yet.
+Homepage (intended CurseForge page, not yet published): https://www.curseforge.com/minecraft/mc-mods/claim-quest
+Bugs and questions: comment on the CurseForge page, or DM @kuronami333 on X (https://x.com/kuronami333).
 
 ---
 
@@ -53,3 +54,11 @@ Headless verification against real FTB jars:
 ./gradlew runGameTestServer          # FTB present
 ./gradlew -PwithoutFtb runGameTestServer  # FTB absent, mod must stay inert
 ```
+
+## License
+
+[All Rights Reserved](LICENSE) — modpack inclusion welcome, no credit required.
+
+## Credits
+
+- Author: KURONAMI
