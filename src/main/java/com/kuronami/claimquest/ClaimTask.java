@@ -1,0 +1,90 @@
+package com.kuronami.claimquest;
+
+import dev.ftb.mods.ftblibrary.config.ConfigGroup;
+import dev.ftb.mods.ftbquests.quest.Quest;
+import dev.ftb.mods.ftbquests.quest.TeamData;
+import dev.ftb.mods.ftbquests.quest.task.Task;
+import dev.ftb.mods.ftbquests.quest.task.TaskType;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+
+/**
+ * "Claim Chunks" task: progresses as the team's claimed-chunk count grows.
+ *
+ * <p>Progress is the team's <em>current</em> claimed-chunk total, applied as a
+ * high-water mark ({@link #onClaimedCountChanged} only raises it). That makes
+ * the task inherently reclaim-safe: unclaiming and re-claiming the same or
+ * another chunk cannot farm progress, and nothing extra needs persisting. Once
+ * FTB Quests marks the task completed it stays completed, as with every task.
+ *
+ * <p>{@code value} (target chunk count) is edited per-task in the quest GUI
+ * and round-trips through SNBT and the network sync like any built-in field.
+ */
+public class ClaimTask extends Task {
+
+    private long value = 1;
+
+    public ClaimTask(long id, Quest quest) {
+        super(id, quest);
+    }
+
+    @Override
+    public TaskType getType() {
+        return ClaimQuestTaskTypes.CLAIM;
+    }
+
+    @Override
+    public long getMaxProgress() {
+        return value;
+    }
+
+    @Override
+    public void fillConfigGroup(ConfigGroup config) {
+        super.fillConfigGroup(config);
+        config.addLong("value", value, v -> value = v, 1L, 1L, Long.MAX_VALUE);
+    }
+
+    @Override
+    public void writeData(CompoundTag nbt, HolderLookup.Provider provider) {
+        super.writeData(nbt, provider);
+        nbt.putLong("value", value);
+    }
+
+    @Override
+    public void readData(CompoundTag nbt, HolderLookup.Provider provider) {
+        super.readData(nbt, provider);
+        value = Math.max(nbt.getLong("value"), 1L);
+    }
+
+    @Override
+    public void writeNetData(RegistryFriendlyByteBuf buffer) {
+        super.writeNetData(buffer);
+        buffer.writeVarLong(value);
+    }
+
+    @Override
+    public void readNetData(RegistryFriendlyByteBuf buffer) {
+        super.readNetData(buffer);
+        value = Math.max(buffer.readVarLong(), 1L);
+    }
+
+    /**
+     * Feeds the team's current claimed-chunk count into this task.
+     *
+     * <p>Gating mirrors what FTB Quests checks before it lets a task receive
+     * progress: the task must not be completed, the quest must be startable
+     * (dependencies done), and the quest's sequential-task order must allow it.
+     */
+    public void onClaimedCountChanged(TeamData data, long claimedCount) {
+        if (data.isCompleted(this)
+                || !data.canStartTasks(getQuest())
+                || !checkTaskSequence(data)) {
+            return;
+        }
+        long target = Math.min(claimedCount, value);
+        if (target > data.getProgress(this)) {
+            data.setProgress(this, target);
+        }
+    }
+}

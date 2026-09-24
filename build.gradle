@@ -1,0 +1,187 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.141'
+    id 'idea'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+version = mod_version
+group = mod_group_id
+
+// headless 検証専用の source set。`jar` は sourceSets.main だけを詰めるので、
+// ここに置いたテストクラス・構造 NBT・テスト用クエスト定義は出荷 jar に入らない。
+sourceSets {
+    gametest {
+        // Host-mod APIs (FTB Quests/Chunks/Teams) live in compileOnly/runtimeOnly —
+        // carry them onto the gametest classpath so tests can use the real classes.
+        compileClasspath += sourceSets.main.output + configurations.compileClasspath
+        runtimeClasspath += sourceSets.main.output + configurations.runtimeClasspath
+    }
+}
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        // Manual verification: server + client. gameDirectory is kept separate
+        // so logs and worlds from this mod never mix with other sessions.
+        client {
+            client()
+            gameDirectory = file('run/client')
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            gameDirectory = file('run/server')
+        }
+
+        // headless の挙動検証。GUI は開かない。gameDirectory は専用に分ける。
+        // run/gametest/config/ftbquests/quests/chapters/claimquest_test.snbt は
+        // prepareGameTestQuests が run 前に配置する（実ロード経路の検証のため）。
+        gameTestServer {
+            type = 'gameTestServer'
+            gameDirectory = file('run/gametest')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            sourceSet = sourceSets.gametest
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+            // GameTest の登録スキャンは mod のファイル一覧を見るので、検証用 source set も
+            // 同じ mod に属させる。jar の中身には影響しない。
+            sourceSet(sourceSets.gametest)
+        }
+    }
+
+    addModdingDependenciesTo(sourceSets.gametest)
+    addModdingDependenciesTo(sourceSets.test)
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+repositories {
+    // FTB mods (Quests / Chunks / Teams / Library)
+    maven { url = 'https://maven.ftb.dev/releases' }
+    // architectury (FTB の推移依存の解決用)
+    maven { url = 'https://maven.architectury.dev/' }
+}
+
+dependencies {
+    // FTB Quests: task type の登録先。FTB Chunks: claim イベントの発火元。
+    // compileOnly = 出荷 jar に同梱しない（利用者側が導入する前提の addon）。
+    compileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
+    compileOnly "dev.ftb.mods:ftb-chunks-neoforge:${ftb_chunks_version}"
+
+    // dev runtime / GameTest では実 jar を載せる。mods.toml では optional 宣言なので、
+    // -PwithoutFtb で両方外した構成（mod は載るが機能しない）の起動確認ができる。
+    if (!project.hasProperty('withoutFtb')) {
+        runtimeOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
+        runtimeOnly "dev.ftb.mods:ftb-chunks-neoforge:${ftb_chunks_version}"
+        runtimeOnly "dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}"
+        runtimeOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
+    }
+
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+// 検証コードの腐りをビルドで拾う（実行はしない。実行は runGameTestServer）。
+tasks.named('check') {
+    dependsOn tasks.named('compileGametestJava')
+}
+
+// GameTest 用クエスト定義を gameTestServer の config dir へ run 前に配置する。
+// SNBT を実ロードさせて `type: "claimquest:claim"` の解決自体を検証する。
+// Copy task として宣言し doFirst で file()/copy() を呼ばない（configuration cache 適合）。
+def prepareGameTestQuests = tasks.register('prepareGameTestQuests', Copy) {
+    from('src/gametest/questpack') {
+        into 'chapters'
+    }
+    into layout.projectDirectory.dir('run/gametest/config/ftbquests/quests')
+}
+tasks.named('runGameTestServer') {
+    dependsOn prepareGameTestQuests
+}
+
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_description        : mod_description,
+            mod_authors            : mod_authors,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// LICENSE jar 同梱
+def licenseFile = file('LICENSE')
+def licenseRenamed = "LICENSE_${mod_id}"
+tasks.named('jar', Jar).configure {
+    inputs.file(licenseFile)
+    from(licenseFile) { rename { licenseRenamed } }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
