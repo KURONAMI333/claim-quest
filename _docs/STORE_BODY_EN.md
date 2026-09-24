@@ -11,7 +11,7 @@ FTB Quests ships no task that watches how much land a team has claimed with FTB 
 - Progress follows the owning team's live claimed-chunk total, credited on every claim
 - High-water mark: progress only ever rises. Unclaiming and re-claiming cannot farm it, and a completed task stays completed
 - Team-based, not player-based: a claim by any member credits the team that owns the chunk
-- Server-side only: no items, no blocks, no config file, no client behaviour
+- The server tracks progress; install the mod on the client too so the custom task type appears correctly in the FTB Quests editor and task display. No items, blocks, or config file are added
 
 **For quest makers**
 

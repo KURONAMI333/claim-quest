@@ -1,6 +1,6 @@
 # Claim Quest
 
-> Adds a **Claim Chunks** task type to FTB Quests. It progresses as your team's claimed-chunk count grows, so quest makers can reward territory expansion without any command-block plumbing. Server-side bridge; no content of its own.
+> Adds a **Claim Chunks** task type to FTB Quests. It progresses as your team's claimed-chunk count grows, so quest makers can reward territory expansion without any command-block plumbing. The server tracks progress; install the mod on clients too for the quest editor and task display.
 
 [![License: All Rights Reserved](https://img.shields.io/badge/License-All_Rights_Reserved-red.svg)](LICENSE)
 Homepage (intended CurseForge page, not yet published): https://www.curseforge.com/minecraft/mc-mods/claim-quest
@@ -40,7 +40,7 @@ The task tracks the team's *current* claimed-chunk total, not "claims made while
 ## For pack makers
 
 - The mod does nothing without FTB Quests loaded, and the task cannot progress without FTB Chunks. Shipping it in a pack without either is harmless but pointless.
-- There are no config options, no items, no blocks, and no client-side behaviour.
+- There are no config options, items, or blocks. The client registers the custom FTB Quests task type for display and editing; the server tracks progress.
 
 ## Development
 
