@@ -21,8 +21,8 @@ FTB Quests ships no task that watches how much land a team has claimed with FTB 
 
 **Dependencies**
 
-- [FTB Quests](https://www.curseforge.com/minecraft/mc-mods/ftb-quests-forge) — required for the mod to do anything. Without it the jar still loads, but registers nothing
-- [FTB Chunks](https://www.curseforge.com/minecraft/mc-mods/ftb-chunks-forge) — required for progress. Without it the task type exists in the editor but never advances
+- [FTB Quests](https://www.curseforge.com/minecraft/mc-mods/ftb-quests) — required for the mod to do anything. Without it the jar still loads, but registers nothing
+- [FTB Chunks](https://www.curseforge.com/minecraft/mc-mods/ftb-chunks) — required for progress. Without it the task type exists in the editor but never advances
 - [FTB Teams](https://www.curseforge.com/minecraft/mc-mods/ftb-teams) + [FTB Library](https://www.curseforge.com/minecraft/mc-mods/ftb-library-forge) — pulled in by the two above; install them the way you normally would
 - All four FTB mods are published on CurseForge only, so a Modrinth-only setup cannot resolve them
 
