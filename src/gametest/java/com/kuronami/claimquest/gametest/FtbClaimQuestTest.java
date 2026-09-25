@@ -4,7 +4,6 @@ import com.kuronami.claimquest.ClaimTask;
 import dev.ftb.mods.ftbquests.quest.ServerQuestFile;
 import dev.ftb.mods.ftbquests.quest.TeamData;
 import dev.ftb.mods.ftbteams.api.Team;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -27,7 +26,6 @@ final class FtbClaimQuestTest {
     static void run(GameTestHelper helper, ServerLevel level) {
         ServerQuestFile file = ServerQuestFile.getInstance()
                 .orElseThrow(() -> new IllegalStateException("no ServerQuestFile"));
-        List<ClaimTask> tasks = file.collect(ClaimTask.class);
         FakeClient client = FakeClient.login(level, "cq-claimer");
         ChunkPos firstChunk = new ChunkPos(helper.absolutePos(new BlockPos(1, 1, 1)));
         AtomicReference<TeamData> dataRef = new AtomicReference<>();
@@ -35,16 +33,17 @@ final class FtbClaimQuestTest {
 
         helper.startSequence()
                 .thenExecuteAfter(2, () -> {
-                    helper.assertFalse(tasks.isEmpty(),
+                    helper.assertFalse(file.collect(ClaimTask.class).isEmpty(),
                             "no claimquest:claim task loaded from test questpack — "
                                     + "type resolution failed or chapter SNBT not read");
-                    taskRef.set(tasks.get(0));
+                    taskRef.set(FtbTestSupport.claimTask(
+                            FtbTestSupport.requireQuest(file, TestQuestIds.SINGLE), 0));
                     Team team = FtbTestSupport.requirePlayerTeam(client.player());
                     TeamData data = file.getOrCreateTeamData(team);
                     dataRef.set(data);
                     helper.assertTrue(data.getProgress(taskRef.get()) == 0L,
                             "fresh claim task already has progress");
-                    FtbTestSupport.claimChunkRow(client.player(), level, firstChunk, 2);
+                    FtbTestSupport.claimFreeChunks(client.player(), level, firstChunk, 2);
                 })
                 .thenExecuteAfter(5, () -> {
                     helper.assertTrue(dataRef.get().getProgress(taskRef.get()) == 2L,
@@ -52,7 +51,7 @@ final class FtbClaimQuestTest {
                                     + dataRef.get().getProgress(taskRef.get()));
                     helper.assertFalse(dataRef.get().isCompleted(taskRef.get()),
                             "task completed before reaching its target");
-                    FtbTestSupport.claimChunkRow(client.player(), level,
+                    FtbTestSupport.claimFreeChunks(client.player(), level,
                             new ChunkPos(firstChunk.x + 2, firstChunk.z), 1);
                 })
                 .thenExecuteAfter(5, () -> {

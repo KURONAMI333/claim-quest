@@ -24,12 +24,42 @@ public class ClaimQuestGameTests {
     @PrefixGameTestTemplate(false)
     @GameTest(template = "empty5x5x5", timeoutTicks = 600)
     public static void claimingChunksProgressesClaimTask(GameTestHelper helper) {
-        if (!ModList.get().isLoaded("ftbquests") || !ModList.get().isLoaded("ftbchunks")) {
-            ClaimQuest.LOGGER.warn(
-                    "claimingChunksProgressesClaimTask skipped: FTB Quests/Chunks not loaded");
-            helper.succeed();
-            return;
-        }
+        if (!ftbPresent(helper, "claimingChunksProgressesClaimTask")) return;
         FtbClaimQuestTest.run(helper, helper.getLevel());
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "empty5x5x5", timeoutTicks = 600)
+    public static void dependencyGatedClaimTaskWaitsForPrerequisite(GameTestHelper helper) {
+        if (!ftbPresent(helper, "dependencyGatedClaimTaskWaitsForPrerequisite")) return;
+        FtbGatingQuestTest.dependencyGate(helper, helper.getLevel());
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "empty5x5x5", timeoutTicks = 600)
+    public static void sequentialClaimTasksProgressInOrder(GameTestHelper helper) {
+        if (!ftbPresent(helper, "sequentialClaimTasksProgressInOrder")) return;
+        FtbGatingQuestTest.sequentialGate(helper, helper.getLevel());
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "empty5x5x5", timeoutTicks = 600)
+    public static void teamMembersClaimsDriveOneSharedTask(GameTestHelper helper) {
+        if (!ftbPresent(helper, "teamMembersClaimsDriveOneSharedTask")) return;
+        FtbTeamQuestTest.run(helper, helper.getLevel());
+    }
+
+    /**
+     * FTB-gated entry point: without FTB Quests/Chunks there is nothing to
+     * verify — log and succeed so the {@code -PwithoutFtb} run still proves
+     * the mod loads inert rather than dropping the tests.
+     */
+    private static boolean ftbPresent(GameTestHelper helper, String testName) {
+        if (ModList.get().isLoaded("ftbquests") && ModList.get().isLoaded("ftbchunks")) {
+            return true;
+        }
+        ClaimQuest.LOGGER.warn("{} skipped: FTB Quests/Chunks not loaded", testName);
+        helper.succeed();
+        return false;
     }
 }
