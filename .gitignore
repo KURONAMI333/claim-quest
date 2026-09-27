@@ -42,3 +42,10 @@ repo/
 ### 統括↔executor の作業文書（公開 repo に入れない）
 GAP_LOG.md
 _handoff/
+
+### Branding production (only approved final assets are tracked) ###
+/branding/_ref/
+/branding/icon-candidates/
+/branding/render_claim_quest_icons*.py
+/branding/DECISION.md
+/branding/__pycache__/
