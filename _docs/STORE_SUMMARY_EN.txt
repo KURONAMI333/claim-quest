@@ -1,1 +1,1 @@
-A new task type for FTB Quests that completes when your team's claimed-chunk total reaches the target.
+Adds a Claim Chunks task to FTB Quests that completes when your team's claimed-chunk total reaches the target.
