@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "claimquest_fabric1211_gametest",
+  "version": "0.1.0-dev",
+  "name": "Claim Quest Fabric 1.21.1 GameTests",
+  "description": "Development-only runtime acceptance suite; never part of the production jar.",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.kuronami.claimquest.gametest.ClaimQuestGameTests"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "fabric-api": "*",
+    "claimquest": "*"
+  }
+}
