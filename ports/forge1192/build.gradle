@@ -48,9 +48,9 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    compileOnly(fg.deobf("dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}")) {
+    compileOnly(fg.deobf("dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}", {
         exclude group: 'dev.latvian.mods', module: 'item-filters-forge'
-    }
+    }))
     compileOnly fg.deobf("dev.ftb.mods:ftb-chunks-forge:${ftb_chunks_version}")
     compileOnly fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}")
     compileOnly fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
@@ -58,9 +58,9 @@ dependencies {
     compileOnly fg.deobf("curse.maven:item-filters-309674:${item_filters_file_id}")
 
     if (!project.hasProperty('withoutFtb')) {
-        runtimeOnly(fg.deobf("dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}")) {
+        runtimeOnly(fg.deobf("dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}", {
             exclude group: 'dev.latvian.mods', module: 'item-filters-forge'
-        }
+        }))
         runtimeOnly fg.deobf("dev.ftb.mods:ftb-chunks-forge:${ftb_chunks_version}")
         runtimeOnly fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}")
         runtimeOnly fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
