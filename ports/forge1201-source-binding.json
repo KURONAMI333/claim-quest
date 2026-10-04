@@ -1,0 +1,9 @@
+{
+  "sourceFormalManifestSha256": "ca9e58b0cd83f11a75f33e9cc5966c109aebdbdd304a627232c48724127aaeff",
+  "formalInputFileCount": 27,
+  "jarSha256": "c9672ba36d44b4ba5eef2828fd1d0ae31d9193ce04fb2519f0cbfffa647aa5ab",
+  "jarBytes": 19429,
+  "target": "Minecraft 1.20.1 / Forge 47.4.13 / Java 17",
+  "recipe": "ForgeGradle 6.0.54 / Librarian 1.2.0.7-dev-SNAPSHOT / Parchment 2023.09.03",
+  "devBehavior": "Four required full-host GameTests passed on 2026-10-04. The test fixture uses the same four main Java source bytes. Dev launch uses SRG-to-named refmap properties and omits unsupported --gameTestServer. Production binary loader was not run separately."
+}
